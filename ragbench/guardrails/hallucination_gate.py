@@ -34,7 +34,7 @@ class HallucinationGate:
         answer: str,
         retrieved_docs: List[RetrievedDocument],
         query: Optional[str] = None
-    ) -> tuple[bool, str]:
+    ) -> tuple:
         """
         Determine if answer should be blocked.
         
