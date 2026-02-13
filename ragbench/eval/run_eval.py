@@ -155,8 +155,10 @@ class EvalRunner:
 def main():
     """Main entry point for evaluation."""
     import argparse
+    import yaml
     from pathlib import Path
     from ragbench.retrieval.tfidf_retriever import TFIDFRetriever
+    from ragbench.retrieval.embedding_retriever import EmbeddingRetriever
     from ragbench.generation.simple_generator import SimpleGenerator
     from ragbench.metrics.faithfulness import FaithfulnessEvaluator
     
@@ -164,27 +166,56 @@ def main():
     parser.add_argument("--config", type=str, required=True, help="Path to config file")
     args = parser.parse_args()
     
-    # Load config (simplified - in full version would use YAML)
+    # Load config
     config_path = Path(args.config)
-    # For now, use defaults
-    corpus_path = Path("data/raw/corpus.json")
-    gold_file = Path("data/gold/gold.jsonl")
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
     
-    # Initialize components
-    retriever = TFIDFRetriever(corpus_path)
+    # Get paths from config
+    corpus_path = Path(config["data"]["corpus"])
+    gold_file = Path(config["data"]["gold_dataset"])
+    top_k = config.get("evaluation", {}).get("top_k", 10)
+    
+    # Initialize retriever
+    retrieval_type = config.get("retrieval", {}).get("type", "tfidf")
+    if retrieval_type == "tfidf":
+        retriever = TFIDFRetriever(corpus_path)
+    elif retrieval_type == "embedding":
+        model_name = config.get("retrieval", {}).get("embedding_model", "all-MiniLM-L6-v2")
+        use_faiss = config.get("retrieval", {}).get("use_faiss", True)
+        retriever = EmbeddingRetriever(corpus_path, model_name=model_name, use_faiss=use_faiss)
+    else:
+        raise ValueError(f"Unknown retrieval type: {retrieval_type}")
+    
+    # Initialize generator
     generator = SimpleGenerator()
-    faithfulness_evaluator = FaithfulnessEvaluator()
+    
+    # Initialize faithfulness evaluator
+    faithfulness_config = config.get("faithfulness", {})
+    faithfulness_evaluator = FaithfulnessEvaluator(
+        similarity_threshold=faithfulness_config.get("similarity_threshold", 0.5),
+        use_spacy=faithfulness_config.get("use_spacy", True)
+    )
     
     # Create output directory
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + str(uuid.uuid4())[:8]
-    output_dir = Path("reports") / run_id
+    reports_dir = Path(config.get("output", {}).get("reports_dir", "reports"))
+    output_dir = reports_dir / run_id
     
     # Run evaluation
     runner = EvalRunner(retriever, generator, faithfulness_evaluator)
-    runner.run_evaluation(gold_file, output_dir, top_k=10)
+    runner.run_evaluation(gold_file, output_dir, top_k=top_k)
+    
+    # Generate report
+    from ragbench.eval.report import generate_report
+    report_md = generate_report(output_dir)
+    report_file = output_dir / "report.md"
+    with open(report_file, "w") as f:
+        f.write(report_md)
     
     print(f"\nRun ID: {run_id}")
     print(f"Results: {output_dir}")
+    print(f"Report: {report_file}")
 
 
 if __name__ == "__main__":

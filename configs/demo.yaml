@@ -1,0 +1,42 @@
+# RAGBench Demo Configuration
+
+# Data paths
+data:
+  corpus: "data/raw/corpus.json"
+  gold_dataset: "data/gold/gold.jsonl"
+
+# Retrieval configuration
+retrieval:
+  type: "tfidf"  # Options: "tfidf", "embedding"
+  top_k: 10
+  embedding_model: "all-MiniLM-L6-v2"  # Only used if type is "embedding"
+  use_faiss: true  # Only used if type is "embedding"
+
+# Generation configuration
+generation:
+  type: "simple"  # Options: "simple", "llm"
+  # llm_config:  # Uncomment for LLM-based generation
+  #   provider: "openai"
+  #   model: "gpt-3.5-turbo"
+  #   api_key: "${OPENAI_API_KEY}"
+
+# Faithfulness evaluation
+faithfulness:
+  similarity_threshold: 0.5
+  use_spacy: true
+
+# Hallucination gate thresholds
+guardrails:
+  min_retrieval_score: 0.3
+  min_faithfulness_score: 0.6
+  min_retrieved_docs: 1
+
+# Evaluation settings
+evaluation:
+  top_k: 10
+  k_values: [1, 3, 5, 10]  # For metrics computation
+
+# Output settings
+output:
+  reports_dir: "reports"
+

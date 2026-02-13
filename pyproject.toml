@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ragbench"
+version = "0.1.0"
+description = "Evaluation harness for Retrieval-Augmented Generation systems"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "RAGBench Contributors"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "sentence-transformers>=2.2.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+faiss = [
+    "faiss-cpu>=1.7.4; sys_platform != 'darwin'",
+    "faiss>=1.7.4; sys_platform == 'darwin'",
+]
+spacy = [
+    "spacy>=3.5.0",
+]
+
+[project.scripts]
+ragbench-eval = "ragbench.eval.run_eval:main"
+ragbench-report = "ragbench.eval.report:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ragbench*"]
+
