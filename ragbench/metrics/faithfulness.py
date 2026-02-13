@@ -13,7 +13,8 @@ except ImportError:
 try:
     from sentence_transformers import SentenceTransformer
     SENTENCE_TRANSFORMERS_AVAILABLE = True
-except ImportError:
+except (ImportError, ValueError, Exception):
+    # Handle various import errors including dependency conflicts
     SENTENCE_TRANSFORMERS_AVAILABLE = False
 
 

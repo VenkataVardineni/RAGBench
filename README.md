@@ -34,10 +34,34 @@ python -m spacy download en_core_web_sm
 
 ### Running Evaluation
 
+#### With Sample Dataset
+
 ```bash
 # Run evaluation with demo configuration
-python -m ragbench.eval.run_eval --config configs/demo.yaml
+python -m ragbench.eval --config configs/demo.yaml
 ```
+
+#### With Large Real Dataset
+
+```bash
+# 1. Load your corpus (from JSONL, directory, or JSON)
+python -m ragbench.datasets.load_corpus \
+    --source jsonl \
+    --input your_data.jsonl \
+    --output data/raw/corpus.json
+
+# 2. Build gold evaluation dataset
+python -m ragbench.datasets.build_gold_large \
+    --corpus data/raw/corpus.json \
+    --output data/gold/gold.jsonl \
+    --num-queries 500 \
+    --strategy diverse
+
+# 3. Run evaluation
+python -m ragbench.eval --config configs/demo.yaml
+```
+
+See [docs/LARGE_DATASET_GUIDE.md](docs/LARGE_DATASET_GUIDE.md) for detailed instructions.
 
 This will:
 1. Load the gold evaluation dataset
