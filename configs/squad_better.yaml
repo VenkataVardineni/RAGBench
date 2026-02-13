@@ -1,0 +1,40 @@
+# RAGBench Configuration for SQuAD with Better Results
+# Uses actual SQuAD questions + embedding retrieval
+
+# Data paths
+data:
+  corpus: "data/raw/squad_corpus_better.json"
+  gold_dataset: "data/gold/gold_squad_better.jsonl"
+
+# Retrieval configuration - Using TF-IDF (embeddings require additional setup)
+# For even better results, install sentence-transformers and set type to "embedding"
+retrieval:
+  type: "tfidf"  # TF-IDF (works out of the box)
+  top_k: 10
+  embedding_model: "all-MiniLM-L6-v2"
+  use_faiss: true
+
+# Generation configuration
+generation:
+  type: "simple"
+
+# Faithfulness evaluation
+faithfulness:
+  similarity_threshold: 0.5
+  use_spacy: true
+
+# Hallucination gate thresholds
+guardrails:
+  min_retrieval_score: 0.3
+  min_faithfulness_score: 0.6
+  min_retrieved_docs: 1
+
+# Evaluation settings
+evaluation:
+  top_k: 10
+  k_values: [1, 3, 5, 10]
+
+# Output settings
+output:
+  reports_dir: "reports"
+
