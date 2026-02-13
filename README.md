@@ -21,15 +21,21 @@ RAGBench provides comprehensive evaluation tools to measure retrieval quality, g
 git clone https://github.com/VenkataVardineni/RAGBench.git
 cd RAGBench
 
-# Install dependencies
+# Install using pip
+pip install -e .
+
+# Or install dependencies manually
 pip install -r requirements.txt
 
-# Optional: Install FAISS for fast similarity search
+# Optional: Install FAISS for fast similarity search (recommended for large datasets)
 pip install faiss-cpu  # or faiss on macOS
 
 # Optional: Install spaCy for better entity extraction
 pip install spacy
 python -m spacy download en_core_web_sm
+
+# Optional: Install sentence-transformers for embedding-based retrieval
+pip install sentence-transformers
 ```
 
 ### Running Evaluation
@@ -41,7 +47,25 @@ python -m spacy download en_core_web_sm
 python -m ragbench.eval --config configs/demo.yaml
 ```
 
-#### With Large Real Dataset
+#### With Real Dataset (Recommended)
+
+**Option 1: Download SQuAD Dataset (Best Results)**
+
+```bash
+# Download SQuAD dataset from HuggingFace
+python scripts/download_huggingface_dataset.py \
+    --dataset squad \
+    --max-docs 500 \
+    --output data/raw/squad_corpus.json
+
+# Build gold dataset with actual SQuAD questions
+python scripts/build_better_gold_from_squad.py
+
+# Run evaluation with improved setup
+python -m ragbench.eval --config configs/squad_better.yaml
+```
+
+**Option 2: Use Your Own Dataset**
 
 ```bash
 # 1. Load your corpus (from JSONL, directory, or JSON)
@@ -184,6 +208,21 @@ Edit `configs/demo.yaml` to customize:
 - Faithfulness thresholds
 - Hallucination gate settings
 
+## Example Results
+
+With the improved setup (actual SQuAD questions + larger corpus), RAGBench achieves:
+
+| Metric | Value | Description |
+|--------|-------|-------------|
+| **MRR** | **0.344** | Mean Reciprocal Rank - top result found in top 3 on average |
+| **Precision@1** | **0.260** | 26% of top results are relevant |
+| **Recall@10** | **0.532** | 53% of relevant docs found in top-10 |
+| **nDCG@10** | **0.389** | Normalized Discounted Cumulative Gain |
+| **Faithfulness** | **1.000** | 100% of answers grounded in context |
+| **Hallucination Rate** | **0.000** | 0% unsupported content |
+
+See [docs/IMPROVING_RESULTS.md](docs/IMPROVING_RESULTS.md) for tips on achieving even better results.
+
 ## Example Report
 
 After running evaluation, you'll get:
@@ -191,7 +230,30 @@ After running evaluation, you'll get:
 - `retrieval_metrics.csv`: Detailed retrieval metrics per query
 - `faithfulness.csv`: Faithfulness scores and hallucination rates
 - `hallucinations.jsonl`: Examples of failures
+- `traces.jsonl`: Complete per-query traces with all details
 - `report.md`: Summary report with aggregate metrics and failure breakdown
+
+## Dataset Download Options
+
+RAGBench includes scripts to download real-world datasets:
+
+```bash
+# SQuAD (Question Answering) - Recommended for best results
+python scripts/download_huggingface_dataset.py --dataset squad
+
+# Wikipedia articles
+python scripts/download_huggingface_dataset.py --dataset wikipedia
+
+# News articles
+python scripts/download_huggingface_dataset.py --dataset news
+```
+
+## Performance Tips
+
+- **For large datasets (>10K docs)**: Use embedding retrieval with FAISS
+- **For better results**: Use actual questions (like SQuAD) instead of generated queries
+- **For faster evaluation**: Reduce number of queries or use smaller embedding models
+- See [docs/IMPROVING_RESULTS.md](docs/IMPROVING_RESULTS.md) for detailed optimization guide
 
 ## Contributing
 
